@@ -1,0 +1,48 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace VideoMetaGenerator
+{
+    class MarkerStructure : IEquatable<MarkerStructure>, IComparable<MarkerStructure>
+    {
+        int videoId;
+        int markerId;
+        public int frameSeq;
+        int milliseconds;
+
+        OpenCV.Net.Point2f marker_position;
+        OpenCV.Net.Size marker_size;
+
+        public MarkerStructure(int _marker_id, int _video_id, int _frameSeq, OpenCV.Net.Point2f marker_pos, OpenCV.Net.Size ms)
+        {
+            markerId = _marker_id;
+            videoId = _video_id;
+            frameSeq = _frameSeq;
+            marker_size = ms;
+            marker_position = marker_pos;
+        }
+
+        public int CompareTo(MarkerStructure other)
+        {
+            if (other == null)
+                return 1;
+            else
+                return frameSeq.CompareTo(other.frameSeq);
+        }
+
+        public bool Equals(MarkerStructure other)
+        {
+            if (other == null)
+                return false;
+            else
+            {
+                if (Math.Abs(other.frameSeq - this.frameSeq) > 10)
+                    return true;
+                else return false;
+            }
+        }
+    }
+}
