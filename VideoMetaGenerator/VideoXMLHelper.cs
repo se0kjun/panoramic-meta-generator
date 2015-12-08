@@ -23,7 +23,10 @@ namespace VideoMetaGenerator
 
         public XmlDocument MetaData
         {
-            get;
+            get
+            {
+                return _MetaData;
+            }
         }
 
         public static VideoXMLHelper Instance
@@ -43,23 +46,20 @@ namespace VideoMetaGenerator
             MarkerNode = _MetaData.GetElementsByTagName("markers")[0];
         }
 
-        public void AddVideoNode(List<OpenCvSharp.VideoCapture> video_list, List<string> video_name)
+        public void AddVideoNode(OpenCvSharp.VideoCapture video, string video_name, int index)
         {
-            foreach(OpenCvSharp.VideoCapture video in video_list)
-            {
-                XmlNode video_node = _MetaData.CreateNode(XmlNodeType.Element, "video", null);
-                XmlAttribute attribute = _MetaData.CreateAttribute("seq");
-                attribute.Value = video_list.IndexOf(video).ToString();
-                video_node.Attributes.Append(attribute);
-                XmlAttribute attribute_frame = _MetaData.CreateAttribute("frame");
-                attribute.Value = video.FrameCount.ToString();
-                video_node.Attributes.Append(attribute_frame);
-                video_node.InnerText = "";
-                VideoNode.AppendChild(video_node);
-            }
+            XmlNode video_node = _MetaData.CreateNode(XmlNodeType.Element, "video", null);
+            XmlAttribute attribute = _MetaData.CreateAttribute("seq");
+            attribute.Value = index.ToString();
+            video_node.Attributes.Append(attribute);
+            XmlAttribute attribute_frame = _MetaData.CreateAttribute("frame");
+            attribute.Value = video.FrameCount.ToString();
+            video_node.Attributes.Append(attribute_frame);
+            video_node.InnerText = video_name;
+            VideoNode.AppendChild(video_node);
         }
 
-        public void AddMarkerNode()
+        public void AddMarkerNode(VideoMarkerTracker.MarkerTrackerStructure s)
         {
             XmlNode marker_node = _MetaData.CreateNode(XmlNodeType.Element, "marker", null);
             XmlAttribute marker_id_attr = marker_node.OwnerDocument.CreateAttribute("id");

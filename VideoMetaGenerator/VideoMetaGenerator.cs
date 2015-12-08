@@ -27,7 +27,7 @@ namespace VideoMetaGenerator
         private List<VideoPacking> InstanceList;
 
         public VideoMetaGenerator(List<OpenCvSharp.VideoCapture> input, List<string> filePath, List<VideoPacking> pack)
-            : base(pack)
+            : base(pack, 5)
         {
             InstanceList = pack;
             m_data = input;
@@ -37,10 +37,18 @@ namespace VideoMetaGenerator
 
         public void Worker()
         {
-            VideoXMLHelper.Instance.AddVideoNode(m_data, m_text_data);
-            Dictionary<int, List<MarkerStructure>> result = 
-                new Dictionary<int, List<MarkerStructure>>();
+            foreach (VideoPacking p in InstanceList)
+            {
+                VideoXMLHelper.Instance.AddVideoNode(p.VideoInstance, p.FilePath, p.VideoIdx);
+            }
+            Dictionary<int, List<MarkerStructure>> result = new Dictionary<int, List<MarkerStructure>>();
             GetMarkerList();
+            GetTrackerList();
+
+            foreach (MarkerTrackerStructure s in tracker_result)
+            {
+                VideoXMLHelper.Instance.AddMarkerNode(s);
+            }
         }
     }
 }
