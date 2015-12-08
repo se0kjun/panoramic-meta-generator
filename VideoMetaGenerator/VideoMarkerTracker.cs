@@ -9,11 +9,32 @@ namespace VideoMetaGenerator
 {
     class VideoMarkerTracker
     {
-        protected Dictionary<int, List<MarkerStructure>> marker_result;
-        private List<VideoPacking> m_data;
-
-        public VideoMarkerTracker(List<VideoPacking> pack)
+        public class MarkerTrackerStructure
         {
+            public int marker_id;
+            public List<MarkerStructure> marker_list;
+
+            public MarkerTrackerStructure(int id, List<MarkerStructure> m)
+            {
+                marker_id = id;
+                marker_list = m;
+            }
+
+            public MarkerTrackerStructure(int id)
+            {
+                marker_id = id;
+                marker_list = new List<MarkerStructure>();
+            }
+        };
+
+        protected Dictionary<int, List<MarkerStructure>> marker_result;
+        protected List<MarkerTrackerStructure> tracker_result;
+        private List<VideoPacking> m_data;
+        private int min_tracker_size;
+
+        public VideoMarkerTracker(List<VideoPacking> pack, int min_size)
+        {
+            min_tracker_size = min_size;
             m_data = pack;
         }
 
@@ -64,7 +85,39 @@ namespace VideoMetaGenerator
                 return MarkerDict;
             }
         }
-        
+
+        private Dictionary<int, List<MarkerStructure>> AddDictionary(
+    Dictionary<int, List<MarkerStructure>> a, Dictionary<int, List<MarkerStructure>> b)
+        {
+            foreach (int key in b.Keys)
+            {
+                List<MarkerStructure> tmp = new List<MarkerStructure>();
+                if (a.ContainsKey(key))
+                {
+                    a[key].AddRange(b[key]);
+                }
+                else
+                {
+                    List<MarkerStructure> new_list = new List<MarkerStructure>();
+                    b.TryGetValue(key, out new_list);
+                    a.Add(key, new_list);
+                }
+            }
+
+            return a;
+        }
+
+        private void PreProcessing()
+        {
+            foreach (MarkerTrackerStructure s in tracker_result)
+            {
+                if (s.marker_list.Count < 5)
+                {
+                    tracker_result.Remove(s);
+                }
+            }
+        }
+
         protected Dictionary<int, List<MarkerStructure>> GetMarkerList()
         {
             int frame_number = 0;
@@ -93,25 +146,29 @@ namespace VideoMetaGenerator
             return marker_result;
         }
 
-        private Dictionary<int, List<MarkerStructure>> AddDictionary(
-            Dictionary<int, List<MarkerStructure>> a, Dictionary<int, List<MarkerStructure>> b)
+        protected List<MarkerTrackerStructure> GetTrackerList()
         {
-            foreach(int key in b.Keys)
+            foreach (int key in marker_result.Keys)
             {
-                List<MarkerStructure> tmp = new List<MarkerStructure>();
-                if (a.ContainsKey(key))
+                MarkerStructure prev = null;
+                MarkerTrackerStructure result = new MarkerTrackerStructure(key);
+                foreach(MarkerStructure s in marker_result[key]) 
                 {
-                    a[key].AddRange(b[key]);
-                }
-                else
-                {
-                    List<MarkerStructure> new_list = new List<MarkerStructure>();
-                    b.TryGetValue(key, out new_list);
-                    a.Add(key, new_list);
+                    if (s.Equals(prev))
+                    {
+                        result.marker_list.Add(s);
+                    }
+                    else
+                    {
+                        tracker_result.Add(result);
+                        result = new MarkerTrackerStructure(key);
+                    }
+                    prev = s;
                 }
             }
-            
-            return a;
+
+            PreProcessing();
+            return tracker_result;
         }
     }
 }
