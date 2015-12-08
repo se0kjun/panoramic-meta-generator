@@ -39,7 +39,7 @@ namespace VideoMetaGenerator
                 return false;
             else
             {
-                if (Math.Abs(other.frameSeq - this.frameSeq) > 10)
+                if (Math.Abs(other.frameSeq - this.frameSeq) <= 5)
                     return true;
                 else return false;
             }
