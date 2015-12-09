@@ -8,13 +8,13 @@ namespace VideoMetaGenerator
 {
     class MarkerStructure : IEquatable<MarkerStructure>, IComparable<MarkerStructure>
     {
-        int videoId;
-        int markerId;
+        public int videoId;
+        public int markerId;
         public int frameSeq;
-        int milliseconds;
+        public int milliseconds;
 
-        OpenCV.Net.Point2f marker_position;
-        OpenCV.Net.Size marker_size;
+        public OpenCV.Net.Point2f marker_position;
+        public OpenCV.Net.Size marker_size;
 
         public MarkerStructure(int _marker_id, int _video_id, int _frameSeq, OpenCV.Net.Point2f marker_pos, OpenCV.Net.Size ms)
         {
