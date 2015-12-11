@@ -34,12 +34,16 @@ namespace VideoMetaGenerator
 
         public VideoMarkerTracker(List<VideoPacking> pack, int min_size)
         {
+            marker_result = new Dictionary<int, List<MarkerStructure>>();
             min_tracker_size = min_size;
             m_data = pack;
         }
 
         private Dictionary<int, List<MarkerStructure>> MarkerTracker(OpenCvSharp.Mat frame, int video_idx, int frame_number)
         {
+            if (frame.Empty())
+                return null;
+
             using (var detector = new Aruco.Net.MarkerDetector())
             {
                 Dictionary<int, List<MarkerStructure>> MarkerDict = new Dictionary<int, List<MarkerStructure>>();
@@ -65,17 +69,28 @@ namespace VideoMetaGenerator
                 {
                     //event trigger
                     List<MarkerStructure> tmp = new List<MarkerStructure>();
-                    if (MarkerDict.TryGetValue(marker.Id, out tmp))
+                    if (!MarkerDict.TryGetValue(marker.Id, out tmp))
                     {
-                        tmp.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
-                            new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
-                            new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
-                        MarkerDict[marker.Id] = tmp;
+                        if (tmp != null)
+                        {
+                            tmp.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                                new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
+                                new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
+                            MarkerDict[marker.Id] = tmp;
+                        }
+                        else
+                        {
+                            List<MarkerStructure> tmp2 = new List<MarkerStructure>();
+                            tmp2.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                                new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
+                                new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
+                            MarkerDict[marker.Id] = tmp2;
+                        }
                     }
                     else
                     {
                         List<MarkerStructure> new_list = new List<MarkerStructure>();
-                        tmp.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                        new_list.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
                             new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
                             new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
                         MarkerDict.Add(marker.Id, new_list);
@@ -127,11 +142,16 @@ namespace VideoMetaGenerator
                 OpenCvSharp.Mat read_image = 
                     new OpenCvSharp.Mat(new OpenCvSharp.Size(p.VideoInstance.FrameWidth, p.VideoInstance.FrameHeight), OpenCvSharp.MatType.CV_8U);
                 frame_number = 0;
+                if (!p.VideoInstance.IsOpened())
+                    break;
                 while (true)
                 {
-                    p.VideoInstance.Read(read_image);
+                    p.VideoInstance.Grab();
+                    
+                    OpenCvSharp.NativeMethods.videoio_VideoCapture_operatorRightShift_Mat(p.VideoInstance.CvPtr, read_image.CvPtr);
                     Dictionary<int, List<MarkerStructure>> tmp = MarkerTracker(read_image, p.VideoIdx, frame_number);
-                    marker_result = AddDictionary(marker_result, tmp);
+                    if(tmp != null)
+                        marker_result = AddDictionary(marker_result, tmp);
                     frame_number++;
                     if (read_image.Empty())
                         break;
