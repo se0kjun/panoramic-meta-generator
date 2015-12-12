@@ -41,6 +41,7 @@ namespace VideoMetaGenerator
             foreach(string a in m_textbox)
             {
                 VideoCapture tmp = new VideoCapture(a);
+                MessageBox.Show(tmp.Fps.ToString());
                 m_videoList.Add(tmp);
             }
 

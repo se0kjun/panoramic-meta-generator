@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define DEBUG
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,6 +36,7 @@ namespace VideoMetaGenerator
         public VideoMarkerTracker(List<VideoPacking> pack, int min_size)
         {
             marker_result = new Dictionary<int, List<MarkerStructure>>();
+            tracker_result = new List<MarkerTrackerStructure>();
             min_tracker_size = min_size;
             m_data = pack;
         }
@@ -122,16 +124,6 @@ namespace VideoMetaGenerator
             return a;
         }
 
-        private void PreProcessing()
-        {
-            foreach (MarkerTrackerStructure s in tracker_result)
-            {
-                if (s.marker_list.Count < 5)
-                {
-                    tracker_result.Remove(s);
-                }
-            }
-        }
 
         protected Dictionary<int, List<MarkerStructure>> GetMarkerList()
         {
@@ -143,13 +135,35 @@ namespace VideoMetaGenerator
                     new OpenCvSharp.Mat(new OpenCvSharp.Size(p.VideoInstance.FrameWidth, p.VideoInstance.FrameHeight), OpenCvSharp.MatType.CV_8U);
                 frame_number = 0;
                 if (!p.VideoInstance.IsOpened())
+                {
+                    System.Windows.Forms.MessageBox.Show("not opened");
                     break;
+                }
+
+#if DEBUG
+                var window = new OpenCvSharp.Window("debug");
+                int sleepTime = (int)Math.Round(1000 / p.VideoInstance.Fps);
+#endif
                 while (true)
                 {
                     p.VideoInstance.Grab();
-                    
                     OpenCvSharp.NativeMethods.videoio_VideoCapture_operatorRightShift_Mat(p.VideoInstance.CvPtr, read_image.CvPtr);
                     Dictionary<int, List<MarkerStructure>> tmp = MarkerTracker(read_image, p.VideoIdx, frame_number);
+#if DEBUG
+                    if (!read_image.Empty())
+                    {
+                        window.ShowImage(read_image);
+                        foreach (int key in tmp.Keys)
+                        {
+                            foreach (MarkerStructure aa in tmp[key])
+                            {
+                                OpenCvSharp.Cv2.Rectangle(read_image, new OpenCvSharp.Rect(
+                                    new OpenCvSharp.Point(aa.marker_position.X, aa.marker_position.Y), new OpenCvSharp.Size(aa.marker_size.Height, aa.marker_size.Width)), new OpenCvSharp.Scalar(255.0f, 0.0f, 0.0f), 3);
+                            }
+                        }
+                        OpenCvSharp.Cv2.WaitKey(sleepTime);
+                    }
+#endif
                     if(tmp != null)
                         marker_result = AddDictionary(marker_result, tmp);
                     frame_number++;
@@ -174,7 +188,7 @@ namespace VideoMetaGenerator
                 MarkerTrackerStructure result = new MarkerTrackerStructure(key);
                 foreach(MarkerStructure s in marker_result[key]) 
                 {
-                    if (s.Equals(prev))
+                    if (s.Equals(prev) || result.marker_list.Count == 0)
                     {
                         result.marker_list.Add(s);
                     }
@@ -182,12 +196,13 @@ namespace VideoMetaGenerator
                     {
                         tracker_result.Add(result);
                         result = new MarkerTrackerStructure(key);
+                        result.marker_list.Add(s);
                     }
                     prev = s;
                 }
             }
 
-            PreProcessing();
+            tracker_result.RemoveAll(item => item.marker_list.Count < 5);
             return tracker_result;
         }
     }
