@@ -9,13 +9,15 @@ namespace VideoMetaGenerator
 {
     class VideoXMLHelper
     {
-        private static readonly VideoXMLHelper _instance = new VideoXMLHelper("data.xml");
+        private static VideoXMLHelper _instance = new VideoXMLHelper("data.xml");
 
         private string _BaseString = @"<?xml version='1.0' encoding='UTF-8' ?>
+<data>
 <videos>
 </videos>
 <markers>
 </markers>
+</data>
 ";
         private XmlDocument _MetaData;
         public XmlNode VideoNode;
@@ -33,6 +35,8 @@ namespace VideoMetaGenerator
         {
             get
             {
+                if (_instance == null)
+                    _instance = new VideoXMLHelper("data.xml");
                 return _instance;
             }
         }
@@ -40,7 +44,14 @@ namespace VideoMetaGenerator
         private VideoXMLHelper(string file_name)
         {            
             _MetaData = new XmlDocument();
-            _MetaData.LoadXml(_BaseString);
+            try
+            {
+                _MetaData.LoadXml(_BaseString);
+            }
+            catch (XmlException ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.StackTrace);
+            }
 
             VideoNode = _MetaData.GetElementsByTagName("videos")[0];
             MarkerNode = _MetaData.GetElementsByTagName("markers")[0];
@@ -53,7 +64,7 @@ namespace VideoMetaGenerator
             attribute.Value = index.ToString();
             video_node.Attributes.Append(attribute);
             XmlAttribute attribute_frame = _MetaData.CreateAttribute("frame");
-            attribute.Value = video.FrameCount.ToString();
+            attribute_frame.Value = video.Fps.ToString();
             video_node.Attributes.Append(attribute_frame);
             video_node.InnerText = video_name;
             VideoNode.AppendChild(video_node);

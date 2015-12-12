@@ -32,7 +32,6 @@ namespace VideoMetaGenerator
             InstanceList = pack;
             m_data = input;
             m_text_data = filePath;
-            Worker();
         }
 
         public void Worker()
@@ -41,6 +40,7 @@ namespace VideoMetaGenerator
             {
                 VideoXMLHelper.Instance.AddVideoNode(p.VideoInstance, p.FilePath, p.VideoIdx);
             }
+            VideoXMLHelper.Instance.XMLSave();
             Dictionary<int, List<MarkerStructure>> result = new Dictionary<int, List<MarkerStructure>>();
             GetMarkerList();
             GetTrackerList();
@@ -49,6 +49,8 @@ namespace VideoMetaGenerator
             {
                 VideoXMLHelper.Instance.AddMarkerNode(s);
             }
+            VideoXMLHelper.Instance.XMLSave();
+            System.Windows.Forms.MessageBox.Show("end");
         }
     }
 }
