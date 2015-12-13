@@ -66,6 +66,12 @@ namespace VideoMetaGenerator
             XmlAttribute attribute_frame = _MetaData.CreateAttribute("frame");
             attribute_frame.Value = video.Fps.ToString();
             video_node.Attributes.Append(attribute_frame);
+            XmlAttribute attribute_width = _MetaData.CreateAttribute("width");
+            attribute_width.Value = video.FrameWidth.ToString();
+            video_node.Attributes.Append(attribute_width);
+            XmlAttribute attribute_height = _MetaData.CreateAttribute("height");
+            attribute_height.Value = video.FrameHeight.ToString();
+            video_node.Attributes.Append(attribute_height);
             video_node.InnerText = video_name;
             VideoNode.AppendChild(video_node);
         }
