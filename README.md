@@ -9,7 +9,7 @@ This project generates XML data for panoramic video.
 ```
 <?xml version="1.0" encoding="UTF-8" ?>
 <videos>
-	<video seq="" angle="">file_name</video>
+	<video seq="" frame="" width="" height="">file_name</video>
 	...
 </videos>
 <markers>
@@ -21,3 +21,8 @@ This project generates XML data for panoramic video.
 </markers>
 ```
 
+##Requirements
+
+- [OpenCvSharp3](https://www.nuget.org/packages/OpenCvSharp3-AnyCPU/3.0.0.20150919)
+- [OpenCV.Net](https://www.nuget.org/packages/OpenCV.Net/3.3.0)
+- [Aruco.Net](https://www.nuget.org/packages/Aruco.Net/2.0.0)
