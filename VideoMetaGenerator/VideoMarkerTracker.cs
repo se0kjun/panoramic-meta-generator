@@ -66,37 +66,41 @@ namespace VideoMetaGenerator
                     new OpenCV.Net.Mat(new OpenCV.Net.Size(frame.Width, frame.Height), 
                     (OpenCV.Net.Depth)frame.Depth(), frame.Channels(), frame.Data);
 
-                var detectedMarkers = detector.Detect(image2, cameraMatrix, distortion, markerSize);
-                foreach (var marker in detectedMarkers)
-                {
-                    //event trigger
-                    List<MarkerStructure> tmp = new List<MarkerStructure>();
-                    if (!MarkerDict.TryGetValue(marker.Id, out tmp))
+                try {
+                    var detectedMarkers = detector.Detect(image2, cameraMatrix, distortion, markerSize);
+                    foreach (var marker in detectedMarkers)
                     {
-                        if (tmp != null)
+                        //event trigger
+                        List<MarkerStructure> tmp = new List<MarkerStructure>();
+                        if (!MarkerDict.TryGetValue(marker.Id, out tmp))
                         {
-                            tmp.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
-                                new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
-                                new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
-                            MarkerDict[marker.Id] = tmp;
+                            if (tmp != null)
+                            {
+                                tmp.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                                    new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
+                                    new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
+                                MarkerDict[marker.Id] = tmp;
+                            }
+                            else
+                            {
+                                List<MarkerStructure> tmp2 = new List<MarkerStructure>();
+                                tmp2.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                                    new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
+                                    new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
+                                MarkerDict[marker.Id] = tmp2;
+                            }
                         }
                         else
                         {
-                            List<MarkerStructure> tmp2 = new List<MarkerStructure>();
-                            tmp2.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
+                            List<MarkerStructure> new_list = new List<MarkerStructure>();
+                            new_list.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
                                 new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
                                 new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
-                            MarkerDict[marker.Id] = tmp2;
+                            MarkerDict.Add(marker.Id, new_list);
                         }
                     }
-                    else
-                    {
-                        List<MarkerStructure> new_list = new List<MarkerStructure>();
-                        new_list.Add(new MarkerStructure(marker.Id, video_idx, frame_number,
-                            new OpenCV.Net.Point2f(marker.Center.X - (marker.Size / 2), marker.Center.Y - (marker.Size / 2)),
-                            new OpenCV.Net.Size((int)marker.Size, (int)marker.Size)));
-                        MarkerDict.Add(marker.Id, new_list);
-                    }
+                } catch(Exception)
+                {
                 }
 
                 return MarkerDict;
